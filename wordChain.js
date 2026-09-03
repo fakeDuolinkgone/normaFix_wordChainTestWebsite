@@ -1,4 +1,4 @@
-/* global playCorrect, playWrong, playFinish, speak */
+
 
 
 let typingBox = null;
@@ -105,7 +105,7 @@ function startGame() {
         data.type,
         "ai"
     );
-    speak(data.word);
+    
     startTimer();
 }
 
@@ -133,7 +133,7 @@ function submitWord() {
         return;
     }
     inputEffect("correct-input");
-    playCorrect();
+    
     score++;
     streak++;
     updateStreak();
@@ -150,7 +150,7 @@ function submitWord() {
         "player"
     );
 
-    speak(data.word);
+    
     resetTimer();
     setTimeout(
         AIPlay,
@@ -257,7 +257,7 @@ function AIPlay() {
             data.type,
             "ai"
         );
-        speak(data.word);
+        
         resetTimer();
     }, 1200);
 }
@@ -275,7 +275,7 @@ function AIPlay() {
 function wrongAnswer(reason) {
     wrongCount++;
     inputEffect("wrong-input");
-    playWrong();
+    
     updateMistake();
     showNotice(
         "❌ " + reason
@@ -636,7 +636,7 @@ function getStreakTitle() {
 
 
 function endGame(title, reason) {
-    playFinish();
+    
     gameEnd = true;
     clearInterval(timerID);
 
