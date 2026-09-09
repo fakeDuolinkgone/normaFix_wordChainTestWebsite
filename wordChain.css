@@ -461,16 +461,12 @@ body {
 
 
 .submit-button:hover {
-
     transform: scale(1.05);
-
 }
 
 
 .submit-button:active {
-
     transform: scale(.95);
-
 }
 
 
@@ -572,20 +568,15 @@ body {
 
 
 
+
+/*===================BẢNG KẾT QUẢ====================*/
 .result-screen {
-
     position: fixed;
-
     inset: 0;
-
     background: rgba(0, 0, 0, .5);
-
     display: none;
-
     justify-content: center;
-
     align-items: center;
-
     z-index: 1000;
 
 }
@@ -593,43 +584,29 @@ body {
 
 
 .result-box {
-
     background: white;
-
     padding: 40px;
-
     border-radius: 30px;
-
     text-align: center;
-
-    min-width: 350px;
-
+    min-width: 700px;
+    min-height: 400px;
 }
 
 
 
 .result-box h1 {
-
     font-size: 48px;
-
 }
 
 
 
 .result-box button {
-
     margin-top: 20px;
-
     padding: 15px 40px;
-
     border-radius: 30px;
-
     border: none;
-
     font-size: 22px;
-
     cursor: pointer;
-
 }
 
 
@@ -644,20 +621,42 @@ body {
 
 
 .type {
-
     font-size: 16px;
-
     margin-left: 8px;
-
     padding: 4px 10px;
-
     border-radius: 15px;
-
     background: rgba(255, 255, 255, .35);
-
     font-weight: bold;
+}
+
+
+
+#resultTitle {
+
+    font-size: 48px;
+
+    margin-bottom: 25px;
 
 }
+
+#resultScore {
+
+    font-size: 24px;
+
+    line-height: 1.8;
+
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -673,65 +672,41 @@ body {
     margin-bottom: 14px;
     width: 88%;
     height: 18px;
-
     margin: 8px auto;
-
     border-radius: 50px;
-
     background: #ddd;
-
     overflow: hidden;
-
     position: relative;
-
     display: none;
 }
 
+
+
 .streak-fill {
-
     width: 0%;
-
     height: 100%;
-
     background: #ff4040;
-
     transition: .35s;
-
 }
 
+
+
 .streak-text {
-
     position: absolute;
-
     inset: 0;
-
     display: flex;
     justify-content: center;
     align-items: center;
-
     font-size: 12px;
     font-weight: bold;
-
     color: white;
-
     text-shadow: 0 0 4px black;
-
     pointer-events: none;
-
 }
-
-
-
-
-
-
-
-
 
 
 
 .rainbow {
-
     background: linear-gradient(90deg,
             red,
             orange,
@@ -743,23 +718,235 @@ body {
             red);
 
     background-size: 300% 100%;
-
     animation: rainbowMove 2s linear infinite;
-
 }
 
 @keyframes rainbowMove {
-
     from {
-
         background-position: 0 0;
-
     }
 
     to {
-
         background-position: 300% 0;
+    }
+}
 
+
+
+
+
+
+
+
+
+
+css
+/* ==============================
+   MEANING
+   ============================== */
+
+.meaning-preview {
+    margin-top: 4px;
+    color: #555;
+
+}
+
+
+/* ==============================
+   NÚT [V]
+   ============================== */
+
+.meaning-toggle {
+    margin-top: 6px;
+    
+    padding: 0;
+
+    border: none;
+    background: none;
+
+    color: inherit;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    opacity: 0.75;
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+.meaning-toggle:hover {
+    opacity: 1;
+}
+
+
+/* ==============================
+   DANH SÁCH NGHĨA
+   ============================== */
+
+.meaning-list {
+    display: none;
+
+    margin-top: 6px;
+
+    animation: meaningOpen 0.2s ease;
+}
+
+.meaning-list.show {
+    display: block;
+}
+
+
+.meaning-item {
+    margin-top: 4px;
+}
+
+
+/* ==============================
+   ANIMATION
+   ============================== */
+
+@keyframes meaningOpen {
+
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+
+
+
+
+
+
+/* =========================================
+   MEANING PREVIEW
+   ========================================= */
+
+.meaning-preview {
+    margin-top: 5px;
+    line-height: 1.45;
+}
+
+
+/* =========================================
+   [V] BUTTON
+   ========================================= */
+
+.meaning-toggle {
+    display: block;
+
+    margin-top: 7px;
+
+    padding: 0;
+
+    border: none;
+
+    background: transparent;
+
+    color: inherit;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    opacity: 0.65;
+
+    cursor: pointer;
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.meaning-toggle:hover {
+    opacity: 1;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================
+   MEANING LIST
+   ========================================= */
+
+.meaning-list {
+    display: none;
+
+    margin-top: 7px;
+
+    padding-top: 6px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+
+    animation: meaningOpen 0.22s ease;
+}
+
+
+.meaning-list.show {
+    display: block;
+}
+
+
+/* =========================================
+   MỖI NGHĨA
+   ========================================= */
+
+.meaning-item {
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 7px;
+
+    margin-bottom: 6px;
+
+    line-height: 1.45;
+}
+
+
+.meaning-bullet {
+    flex-shrink: 0;
+
+    opacity: 0.65;
+
+    font-size: 11px;
+
+    line-height: 1.6;
+}
+
+
+.meaning-text {
+    flex: 1;
+}
+
+
+/* =========================================
+   ANIMATION
+   ========================================= */
+
+@keyframes meaningOpen {
+
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 
 }
+

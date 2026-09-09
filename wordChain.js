@@ -1,15 +1,16 @@
+/* global playCorrect, playWrong, playFinish, speak */
 
-
-
+let totalWrong = 0;
 let typingBox = null;
 
+let typingID;
 let score = 0;
 let currentWord = "";
 let usedWords = new Set();
 
 let life = 2;
 let wrongCount = 0;
-
+let rankStreak = "none";
 let timer = 30;
 let timerID;
 
@@ -18,6 +19,9 @@ let streak = 0;
 const LEVEL_SIZE = 15;
 let level = Math.floor(streak / LEVEL_SIZE);
 let progress = streak % LEVEL_SIZE;
+
+let maxStreak = 0;
+let startTime = Date.now();
 
 const colors = [
 
@@ -101,11 +105,12 @@ function startGame() {
     usedWords.add(word);
     addMessage(
         data.word,
-        data.meaning,
+        null,
         data.type,
-        "ai"
+        "ai",
+        data.meanings
     );
-    
+    speak(data.word);
     startTimer();
 }
 
@@ -133,9 +138,12 @@ function submitWord() {
         return;
     }
     inputEffect("correct-input");
-    
+    playCorrect();
     score++;
     streak++;
+    if (streak > maxStreak) {
+        maxStreak = streak;
+    }
     updateStreak();
     wrongCount = 0;
     updateMistake();
@@ -145,12 +153,13 @@ function submitWord() {
     usedWords.add(word);
     addMessage(
         data.word,
-        data.meaning,
+        null,
         data.type,
-        "player"
+        "player",
+        data.meanings
     );
 
-    
+    speak(data.word);
     resetTimer();
     setTimeout(
         AIPlay,
@@ -253,11 +262,12 @@ function AIPlay() {
 
         addMessage(
             data.word,
-            data.meaning,
+            null,
             data.type,
-            "ai"
+            "ai",
+            data.meanings
         );
-        
+        speak(data.word);
         resetTimer();
     }, 1200);
 }
@@ -274,8 +284,9 @@ function AIPlay() {
 
 function wrongAnswer(reason) {
     wrongCount++;
+    totalWrong++;
     inputEffect("wrong-input");
-    
+    playWrong();
     updateMistake();
     showNotice(
         "❌ " + reason
@@ -372,35 +383,148 @@ function resetTimer() {
 
 
 
-function addMessage(word, meaning, type, side) {
-    let div =
-        document.createElement("div");
+
+
+function addMessage(word, meaning, type, side, meanings = []) {
+
+    let div = document.createElement("div");
+
     div.className =
         "message " +
         (side === "player" ? "left" : "right");
+
+
+    // =====================================================
+    // TYPE
+    // =====================================================
+
+    let typeText = Array.isArray(type)
+        ? type.join(", ")
+        : type;
+
+
+    // =====================================================
+    // MEANINGS
+    // =====================================================
+
+
+    let allMeanings = Array.isArray(meanings)
+        ? meanings
+        : [];
+
+
+    // -----------------------------------------------------
+    // Nếu chưa có meanings thì dùng meaning cũ
+    // -----------------------------------------------------
+
+    if (allMeanings.length === 0 && meaning) {
+
+        allMeanings = [
+            {
+                type: typeText,
+                text: meaning,
+                examples: []
+            }
+        ];
+    }
+
+
+    // =====================================================
+    // NGHĨA ĐẦU TIÊN
+    // =====================================================
+
+    let firstMeaning =
+        allMeanings.length > 0
+            ? allMeanings[0].text
+            : "";
+
+
+    // =====================================================
+    // TẠO DANH SÁCH NGHĨA
+    // =====================================================
+
+    let meaningsHTML = allMeanings
+        .map(item => {
+
+            return `
+                <div class="meaning-item">
+                    <span class="meaning-bullet">•</span>
+                    <span class="meaning-text">
+                        ${item.text}
+                    </span>
+                </div>
+            `;
+
+        })
+        .join("");
+
+
+    // =====================================================
+    // HTML
+    // =====================================================
+
     div.innerHTML = `
-    ${side === "player"
+
+        ${side === "player"
             ?
             '<div class="avatar player-avatar"></div>'
             :
             ''
         }
 
-    <div class="bubble-chat ${side === "ai" ? "ai" : ""}">
-        <div class="word">
-            ${word}
-        <span class="type">
-            ${type}
-        </span>
+        <div class="bubble-chat ${side === "ai" ? "ai" : ""}">
+
+            <div class="word">
+
+                ${word}
+
+                <span class="type">
+                    ${typeText}
+                </span>
+
+            </div>
+
+
+            <!-- Nghĩa đầu tiên -->
+            <div class="meaning-preview">
+                ${firstMeaning}
+            </div>
+
+
+            <!-- Nút V -->
+            ${allMeanings.length > 1
+            ?
+            `
+                        <button
+                            class="meaning-toggle"
+                            type="button"
+                        >
+                            [V] ▼
+                        </button>
+                    `
+            :
+            ''
+        }
+
+
+            <!-- Toàn bộ nghĩa -->
+            ${allMeanings.length > 1
+            ?
+            `
+                        <div class="meaning-list">
+
+                            ${meaningsHTML}
+
+                        </div>
+                    `
+            :
+            ''
+        }
+
         </div>
 
-        <div class="meaning">
-            ${meaning}
-        </div>
 
-    </div>
-
-    ${side === "ai"
+        ${side === "ai"
             ?
             '<div class="avatar ai-avatar"></div>'
             :
@@ -408,11 +532,80 @@ function addMessage(word, meaning, type, side) {
         }
     `;
 
+
+    // =====================================================
+    // ADD TO CHAT
+    // =====================================================
+
     chatArea.appendChild(div);
+
     chatArea.scrollTop =
         chatArea.scrollHeight;
 
+
+    // =====================================================
+    // TOGGLE [V]
+    // =====================================================
+
+    let toggleBtn =
+        div.querySelector(".meaning-toggle");
+
+    let meaningList =
+        div.querySelector(".meaning-list");
+
+    let meaningPreview =
+        div.querySelector(".meaning-preview");
+
+
+    if (toggleBtn && meaningList) {
+
+        toggleBtn.addEventListener("click", () => {
+
+            let isOpen =
+                meaningList.classList.contains("show");
+
+
+            if (isOpen) {
+
+                // Đóng
+                meaningList.classList.remove("show");
+
+                meaningPreview.style.display = "block";
+
+                toggleBtn.innerText = "[V] ▼";
+
+            }
+            else {
+
+                // Mở
+                meaningList.classList.add("show");
+
+                meaningPreview.style.display = "none";
+
+                toggleBtn.innerText = "[V] ▲";
+
+            }
+
+
+            // Giữ vị trí chat hợp lý
+            chatArea.scrollTop =
+                chatArea.scrollHeight;
+
+        });
+
+    }
+
 }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -469,7 +662,7 @@ function inputEffect(type) {
 
 
 
-let typingID;
+
 function startTyping() {
     let dots = 0;
     typingID = setInterval(() => {
@@ -591,33 +784,51 @@ function updateStreak() {
 
 function getStreakTitle() {
 
-    if (streak >= 10000) return "GOD";
-    if (streak >= 1000) return "IMMORTAL";
-    if (streak >= 500) return "LEGEND";
+    if (streak >= 10000) {
+        rankStreak = "GOD";
+        return "GOD";
+    }
+
+    if (streak >= 1000) {
+        rankStreak = "IMMORTAL";
+        return "IMMORTAL";
+    }
+
+    if (streak >= 500) {
+        rankStreak = "LEGEND";
+        return "LEGEND";
+    }
 
     let level = Math.floor(streak / 15);
 
     switch (level) {
 
         case 0:
+            rankStreak = "NICE";
             return "LEVEL 1 • NICE";
 
         case 1:
+            rankStreak = "GOOD";
             return "LEVEL 2 • GOOD";
 
         case 2:
+            rankStreak = "GREAT";
             return "LEVEL 3 • GREAT";
 
         case 3:
+            rankStreak = "CRAZY";
             return "LEVEL 4 • CRAZY";
 
         case 4:
+            rankStreak = "AMAZING";
             return "LEVEL 5 • AMAZING";
 
         case 5:
+            rankStreak = "INSANE";
             return "LEVEL 6 • INSANE";
 
         default:
+            rankStreak = "MASTER";
             return "LEVEL 7 • MASTER";
 
     }
@@ -635,8 +846,54 @@ function getStreakTitle() {
 
 
 
+
+
+
+
+
+
+
+
+function showResult(title, reason) {
+    let accuracy = 100;
+    if (score + totalWrong > 0) {
+        accuracy =
+            Math.round(
+                score / (score + totalWrong) * 100
+            );
+    }
+
+    let seconds = Math.floor((Date.now() - startTime) / 1000);
+    let minute = Math.floor(seconds / 60);
+    let second = String(seconds % 60).padStart(2, "0");
+
+    resultScreen.style.display = "flex";
+    resultTitle.innerText = title;
+    resultReason.innerText = reason;
+    resultScore.innerHTML =
+        resultScore.innerHTML =
+        `
+🏆 Score : ${score}<br><br>
+
+🔥 Max Streak : ${maxStreak}<br>
+
+🎯 Accuracy : ${accuracy}%<br>
+
+🧠 Words : ${usedWords.size}<br>
+
+❤️ Lives Left : ${life}<br>
+
+⏱ Time : ${minute}:${second}<br><br>
+
+⭐ ${rankStreak}
+`;
+}
+
+
+
+
 function endGame(title, reason) {
-    
+    playFinish();
     gameEnd = true;
     clearInterval(timerID);
 
@@ -648,23 +905,6 @@ function endGame(title, reason) {
         title,
         reason
     );
-}
-
-
-
-
-
-
-
-function showResult(title, reason) {
-    saveScore();
-    resultScreen.style.display = "flex";
-    resultTitle.innerText =
-        title;
-    resultReason.innerText =
-        reason;
-    resultScore.innerText =
-        "Score: " + score;
 }
 
 
@@ -704,3 +944,8 @@ function saveScore() {
 function restartGame() {
     location.reload();
 }
+
+
+
+
+
